@@ -22,30 +22,19 @@ PLAYERS_LIST = (
         'assets/sprites/redbird-midflap.png',
         'assets/sprites/redbird-downflap.png',
     ),
-    # blue bird
-    (
-        'assets/sprites/bluebird-upflap.png',
-        'assets/sprites/bluebird-midflap.png',
-        'assets/sprites/bluebird-downflap.png',
-    ),
-    # yellow bird
-    (
-        'assets/sprites/yellowbird-upflap.png',
-        'assets/sprites/yellowbird-midflap.png',
-        'assets/sprites/yellowbird-downflap.png',
-    ),
+    
 )
 
 # list of backgrounds
 BACKGROUNDS_LIST = (
-    'assets/sprites/background-day.png',
-    'assets/sprites/background-night.png',
+    'assets/sprites/black.png',
+    
 )
 
 # list of pipes
 PIPES_LIST = (
     'assets/sprites/pipe-green.png',
-    'assets/sprites/pipe-red.png',
+    
 )
 
 
@@ -87,23 +76,23 @@ def main():
 
     while True:
         # select random background sprites
-        randBg = random.randint(0, len(BACKGROUNDS_LIST) - 1)
-        IMAGES['background'] = pygame.image.load(BACKGROUNDS_LIST[randBg]).convert()
+        
+        IMAGES['background'] = pygame.image.load(BACKGROUNDS_LIST[0]).convert()
 
         # select random player sprites
-        randPlayer = random.randint(0, len(PLAYERS_LIST) - 1)
+        
         IMAGES['player'] = (
-            pygame.image.load(PLAYERS_LIST[randPlayer][0]).convert_alpha(),
-            pygame.image.load(PLAYERS_LIST[randPlayer][1]).convert_alpha(),
-            pygame.image.load(PLAYERS_LIST[randPlayer][2]).convert_alpha(),
+            pygame.image.load(PLAYERS_LIST[0][0]).convert_alpha(),
+            pygame.image.load(PLAYERS_LIST[0][1]).convert_alpha(),
+            pygame.image.load(PLAYERS_LIST[0][2]).convert_alpha(),
         )
 
         # select random pipe sprites
-        pipeindex = random.randint(0, len(PIPES_LIST) - 1)
+        
         IMAGES['pipe'] = (
             pygame.transform.flip(
-                pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(), False, True),
-            pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(),
+                pygame.image.load(PIPES_LIST[0]).convert_alpha(), False, True),
+            pygame.image.load(PIPES_LIST[0]).convert_alpha(),
         )
 
         # hismask for pipes
