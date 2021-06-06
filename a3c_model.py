@@ -243,20 +243,21 @@ def main():
         advantage = np.array(episode_r) - np.array(episode_critic)
         print("backpropagating")
 
+
         lrate = LearningRateScheduler(step_decay)
         callbacks_list = [lrate]
 
         weights = {'o_P':advantage, 'o_V':np.ones(len(advantage))}  
         #backpropagation
         history = model.fit(episode_state, [episode_output, episode_r], epochs = EPISODE + 1, batch_size = len(episode_output), callbacks = callbacks_list, sample_weight = weights, initial_epoch = EPISODE)
-
+        print(history.history.keys())
         episode_r = []
         episode_output = []
         episode_state = np.zeros((0, IMAGE_ROWS, IMAGE_COLS, IMAGE_CHANNELS))
         episode_critic = []
 
         f = open("rewards.txt","a")
-        f.write("Update: " + str(EPISODE) + ", Reward_mean: " + str(e_mean) + ", Loss: " + str(history.history['loss']) + "\n")
+        f.write("Update: " + str(EPISODE) + ", Reward_mean: " + str(e_mean) + ", Loss: " + str(history.history['loss']) + ", O_P_Loss: " + str(history.history['o_P_loss']) + ", O_V_Loss: " + str(history.history['o_V_loss']) + ", learning_r: " + str(history.history['lr']) + "\n")
         f.close()
 
         if EPISODE % 50 == 0: 
