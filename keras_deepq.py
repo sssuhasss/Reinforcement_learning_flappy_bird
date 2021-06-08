@@ -1,10 +1,12 @@
 from __future__ import print_function
 
 import argparse
-import skimage as skimage
-from skimage import transform, color, exposure
-from skimage.transform import rotate
-from skimage.viewer import ImageViewer
+import numpy.core.multiarray
+import cv2
+#import skimage as skimage
+#from skimage import transform, color, exposure
+#from skimage.transform import rotate
+#from skimage.viewer import ImageViewer
 import sys
 sys.path.append("game/")
 import wrapped_flappy_bird as game
@@ -13,13 +15,19 @@ import numpy as np
 from collections import deque
 
 import json
-from keras.initializers import normal, identity
+from keras import initializers
+#from tensorflow.keras import initializers
 from keras.models import model_from_json
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD , Adam
 import tensorflow as tf
+import keras
+from keras.layers import  Input
+from keras.models import  Model
+
+#initializer = initializers.TruncatedNormal(mean=0, stddev=0.01)
 
 GAME = 'bird' # the name of the game being played for log files
 CONFIG = 'nothreshold'
@@ -28,11 +36,11 @@ GAMMA = 0.99 # decay rate of past observations
 OBSERVATION = 3200. # timesteps to observe before training
 EXPLORE = 500000. # frames over which to anneal epsilon
 FINAL_EPSILON = 0.0001 # final value of epsilon
-INITIAL_EPSILON = 0.9 # starting value of epsilon
+INITIAL_EPSILON = 0.1 # starting value of epsilon
 REPLAY_MEMORY = 50000 # number of previous transitions to remember
 BATCH = 32 # size of minibatch
 FRAME_PER_ACTION = 1
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-6
 CONTINUE_TRAIN = True
 
 img_rows , img_cols = 80, 80
@@ -41,17 +49,32 @@ img_channels = 4 #We stack 4 frames
 
 def buildmodel():
     print("Building Model")
+    ##model = Sequential()
+    #model.add(Convolution2D(32, (8, 8), strides=(4, 4), padding='same',input_shape=(img_rows,img_cols,img_channels),kernel_initializer="initializer"))  #80*80*4
+    #model.add(Activation('relu'))
+    #model.add(Convolution2D(64, (4, 4), strides=(2, 2), padding='same'),kernel_initializer="initializer")
+    #model.add(Activation('relu'))
+    #model.add(Convolution2D(64, (3, 3), strides=(1, 1), padding='same'),kernel_initializer="initializer")
+    #model.add(Activation('relu'))
+    #model.add(Flatten())
+    #model.add(Dense(512),kernel_initializer=initializer)
+    #model.add(Activation('relu'))
+    #model.add(Dense(2))
+
     model = Sequential()
-    model.add(Convolution2D(32, (8, 8), strides=(4, 4), padding='same',input_shape=(img_rows,img_cols,img_channels)))  #80*80*4
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, (4, 4), strides=(2, 2), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, (3, 3), strides=(1, 1), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Flatten())
-    model.add(Dense(512))
-    model.add(Activation('relu'))
-    model.add(Dense(2))
+    keras.initializers.RandomNormal(mean=0, stddev=0.01)
+
+    S = Input(shape = (img_rows,img_cols,img_channels, ), name = 'Input')
+    h0 = Convolution2D(32, kernel_size = (8,8), strides = (4,4), activation = 'relu', kernel_initializer = 'random_normal', bias_initializer = 'random_normal')(S)
+    h1 = Convolution2D(64, kernel_size = (4,4), strides = (2,2), activation = 'relu', kernel_initializer = 'random_normal', bias_initializer = 'random_normal')(h0)
+    h11 = Convolution2D(64, kernel_size = (3,3), strides = (1,1), activation = 'relu', kernel_initializer = 'random_normal', bias_initializer = 'random_normal')(h1)
+    h2 = Flatten()(h11)
+    h3 = Dense(512, activation = 'relu', kernel_initializer = 'random_normal', bias_initializer = 'random_normal') (h2)
+    O_p = Dense(2, name = 'o_P', activation = 'sigmoid', kernel_initializer = 'random_normal', bias_initializer = 'random_normal') (h3)
+    
+
+    model = Model(inputs = S, outputs = [O_p])
+    
    
     adam = Adam(lr=LEARNING_RATE)
     model.compile(loss='mse',optimizer=adam)
@@ -60,7 +83,7 @@ def buildmodel():
 
 def trainNetwork(model,args):
     # open up a game state to communicate with emulator
-    game_state = game.GameState()
+    game_state = game.GameState(30)
 
     # Make a double ended queue to store the previous observations in replay memory
     D = deque()
@@ -70,9 +93,12 @@ def trainNetwork(model,args):
     do_nothing[0] = 1
     x_t, r_0, terminal = game_state.frame_step(do_nothing)
 
-    x_t = skimage.color.rgb2gray(x_t)
-    x_t = skimage.transform.resize(x_t,(80,80))
-    x_t = skimage.exposure.rescale_intensity(x_t,out_range=(0,255))
+    x_t = cv2.cvtColor(cv2.resize(x_t, (80, 80)), cv2.COLOR_BGR2GRAY)
+    ret, x_t = cv2.threshold(x_t,1,255,cv2.THRESH_BINARY)
+
+    #x_t = skimage.color.rgb2gray(x_t)
+    #x_t = skimage.transform.resize(x_t,(80,80))
+    #x_t = skimage.exposure.rescale_intensity(x_t,out_range=(0,255))
 
     x_t = x_t / 255.0
 
@@ -125,10 +151,11 @@ def trainNetwork(model,args):
         #run the selected action and observed next state and reward
         x_t1_colored, r_t, terminal = game_state.frame_step(a_t)
 
-        x_t1 = skimage.color.rgb2gray(x_t1_colored)
-        x_t1 = skimage.transform.resize(x_t1,(80,80))
-        x_t1 = skimage.exposure.rescale_intensity(x_t1, out_range=(0, 255))
-
+        #x_t1 = skimage.color.rgb2gray(x_t1_colored)
+        #x_t1 = skimage.transform.resize(x_t1,(80,80))
+        #x_t1 = skimage.exposure.rescale_intensity(x_t1, out_range=(0, 255))
+        x_t1 = cv2.cvtColor(cv2.resize(x_t1_colored, (80, 80)), cv2.COLOR_BGR2GRAY)
+        ret, x_t1 = cv2.threshold(x_t1, 1, 255, cv2.THRESH_BINARY)
 
         x_t1 = x_t1 / 255.0
 
@@ -201,6 +228,9 @@ def trainNetwork(model,args):
         print("TIMESTEP", t, "/ STATE", state, \
             "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, \
             "/ Q_MAX " , np.max(Q_sa), "/ Loss ", loss)
+        f = open("rewards.txt","a")
+        f.write("TIMESTEP: " + str(t) + ", Q_MAX " + str(np.max(Q_sa)) + ", EPSILON: " + str(epsilon) + ", REWARD: " + str(r_t) + ", Loss: " + str(loss)  + "\n")
+        f.close()
 
     print("Episode finished!")
     print("************************")

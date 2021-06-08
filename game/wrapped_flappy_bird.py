@@ -30,13 +30,13 @@ PLAYER_INDEX_GEN = cycle([0, 1, 2, 1])
 
 
 class GameState:
-    def __init__(self):
+    def __init__(self, FPS):
         self.score = self.playerIndex = self.loopIter = 0
         self.playerx = int(SCREENWIDTH * 0.2)
         self.playery = int((SCREENHEIGHT - PLAYER_HEIGHT) / 2)
         self.basex = 0
         self.baseShift = IMAGES['base'].get_width() - BACKGROUND_WIDTH
-
+        self.FPS =FPS
         newPipe1 = getRandomPipe()
         newPipe2 = getRandomPipe()
         self.upperPipes = [
@@ -56,6 +56,20 @@ class GameState:
         self.playerAccY    =   1   # players downward accleration
         self.playerFlapAcc =  -9   # players speed on flapping
         self.playerFlapped = False # True when player flaps
+        
+        SCREEN.blit(IMAGES['background'], (0,0))
+
+        for uPipe, lPipe in zip(self.upperPipes, self.lowerPipes):
+            SCREEN.blit(IMAGES['pipe'][0], (uPipe['x'], uPipe['y']))
+            SCREEN.blit(IMAGES['pipe'][1], (lPipe['x'], lPipe['y']))
+
+        SCREEN.blit(IMAGES['base'], (self.basex, BASEY))
+        # print score so player overlaps the score
+        # showScore(self.score)
+        SCREEN.blit(IMAGES['player'][self.playerIndex],
+                    (self.playerx, self.playery))
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
 
     def frame_step(self, input_actions):
         pygame.event.pump()
@@ -122,7 +136,7 @@ class GameState:
             #SOUNDS['hit'].play()
             #SOUNDS['die'].play()
             terminal = True
-            self.__init__()
+            self.__init__(FPS)
             reward = -1
 
         # draw sprites
