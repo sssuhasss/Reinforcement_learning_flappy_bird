@@ -7,7 +7,7 @@ import pygame.surfarray as surfarray
 from pygame.locals import *
 from itertools import cycle
 
-#FPS = 30
+FPS = 30
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 
@@ -36,7 +36,7 @@ class GameState:
         self.playery = int((SCREENHEIGHT - PLAYER_HEIGHT) / 2)
         self.basex = 0
         self.baseShift = IMAGES['base'].get_width() - BACKGROUND_WIDTH
-        self.FPS = FPS
+        self.FPS =FPS
         newPipe1 = getRandomPipe()
         newPipe2 = getRandomPipe()
         self.upperPipes = [
@@ -56,6 +56,7 @@ class GameState:
         self.playerAccY    =   1   # players downward accleration
         self.playerFlapAcc =  -9   # players speed on flapping
         self.playerFlapped = False # True when player flaps
+        
         SCREEN.blit(IMAGES['background'], (0,0))
 
         for uPipe, lPipe in zip(self.upperPipes, self.lowerPipes):
@@ -64,13 +65,12 @@ class GameState:
 
         SCREEN.blit(IMAGES['base'], (self.basex, BASEY))
         # print score so player overlaps the score
+        # showScore(self.score)
         SCREEN.blit(IMAGES['player'][self.playerIndex],
                     (self.playerx, self.playery))
-
         pygame.display.update()
-        FPSCLOCK.tick(self.FPS)  
+        FPSCLOCK.tick(FPS)
 
-        
     def frame_step(self, input_actions):
         pygame.event.pump()
 
@@ -136,7 +136,7 @@ class GameState:
             #SOUNDS['hit'].play()
             #SOUNDS['die'].play()
             terminal = True
-            self.__init__(self.FPS)
+            self.__init__(FPS)
             reward = -1
 
         # draw sprites
@@ -154,10 +154,9 @@ class GameState:
 
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
         pygame.display.update()
-        FPSCLOCK.tick(self.FPS)
+        FPSCLOCK.tick(FPS)
         #print self.upperPipes[0]['y'] + PIPE_HEIGHT - int(BASEY * 0.2)
         return image_data, reward, terminal
-
     def getCurrentFrame(self):
         image_data = pygame.surfarray.array3d(pygame.display.get_surface())
         return image_data
