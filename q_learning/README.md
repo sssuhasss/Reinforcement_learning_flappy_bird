@@ -6,7 +6,7 @@
 ----------> To see the results of training , uncomment the lines  253 and 254 in q_learning_game.py and run it
 
 4) For q_learning_game.py use the following arguments to get their respective results                                        
-      --fps to set number of frames per second
-      --iter to set number of iterations for the game to run
-      --dump_hitmasks to store hitmasks in a file
+      --fps to set number of frames per second                                             
+      --iter to set number of iterations for the game to run                                                 
+      --dump_hitmasks to store hitmasks in a file                              
       --verbose to get output [iteration | score] in stdout
