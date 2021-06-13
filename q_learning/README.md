@@ -1,6 +1,5 @@
-1) Run bird.py to play only the game                       
-
-2)Run initialize.py to start training the bird from beginning                
+1) Run bird.py to play only the game   
+2) Run initialize.py to start training the bird from beginning                
 
 3) Run q_learning_game.py to Train the game and also see the results.                                           
 ----------> To train the game Run initialize.py and q_learning_game.py as it is.                                    
